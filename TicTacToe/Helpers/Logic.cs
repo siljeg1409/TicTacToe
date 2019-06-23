@@ -126,6 +126,8 @@ namespace TicTacToe.Helpers
                 List<int> oMarkAI = _ResultsAI.Where(o => o.Mark == "O").Select(o => o.Index).ToList(); // AI markers
                 int posWin = checkPotentialWin(xMarkAI, oMarkAI);
                 if (posWin != -1) return posWin;
+                int posloss = checkPotentialLoss(xMarkAI, oMarkAI);
+                if (posloss != -1) return posloss;
                 List<int> res = blankMarkAI.Except(xMarkAI).Except(oMarkAI).ToList();
                 if (res.Count() == 0) return nextMove;
 
@@ -165,7 +167,7 @@ namespace TicTacToe.Helpers
             return 0;
         }
 
-        private int checkPotentialWin(List<int> x, List<int> o)
+        private int checkPotentialLoss(List<int> x, List<int> o)
         {
             foreach (List<int> lst in _WinList)
             {
@@ -174,6 +176,21 @@ namespace TicTacToe.Helpers
                     var result = lst.Except(x);
                     foreach (var r in result)
                         if (!o.Contains(r))
+                            return r;
+                }
+            }
+            return -1;
+        }
+
+        private int checkPotentialWin(List<int> x, List<int> o)
+        {
+            foreach (List<int> lst in _WinList)
+            {
+                if (lst.Except(o).Count() == 1)
+                {
+                    var result = lst.Except(o);
+                    foreach (var r in result)
+                        if (!x.Contains(r))
                             return r;
                 }
             }
