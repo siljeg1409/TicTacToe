@@ -6,6 +6,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Threading;
 
 namespace TicTacToe.Helpers
 {
@@ -14,7 +15,6 @@ namespace TicTacToe.Helpers
         #region Private members
         private List<MarkType> _Results;
         private List<List<int>> _WinList = new List<List<int>>();
-        //private bool _PlayerTurn;
         private MainWindow _win;
         private List<MarkType> _ResultsAI;
         private bool _PlayerTurnAI;
@@ -40,80 +40,36 @@ namespace TicTacToe.Helpers
             #endregion
         }
 
-
         public void StartNewGame()
         {
-            _Results = new List<Helpers.MarkType>();
+            _Results = new List<MarkType>();
             _win.mainGrid.Children.Cast<Button>().ToList().ForEach(b => { b.Content = String.Empty; b.Background = Brushes.White; b.Foreground = Brushes.Black; });
         }
-
-
-
 
         public void ButtonHandler(Button btn, int pos)
         {
             string sMark = _Results.Where(o => o.Index == pos).Select(x => x.Mark).FirstOrDefault();
             if (sMark != null) return;
-            _Results.Add(new MarkType("X",pos));
-            btn.Content = "X";
+            play(pos, true);
             if (messageHandler(winnerCheck())) return;
             _ResultsAI = new List<MarkType>(_Results);
             _PlayerTurnAI = false;
-            setButton(bestMove());
+            play(bestMove(),false);
             messageHandler(winnerCheck());
         }
 
         private bool messageHandler(int v)
         {
-            if (v != 0)
+            if((v == 0 && _Results.Count() > 8) || v!= 0)
             {
-                MessageBox.Show("Winner is: " + (v == 1 ? "Player 1" : "Player 2"));
-                StartNewGame();
-                return true;
-            }
-            else if (v == 0 && _Results.Count() > 8)
-            {
-                MessageBox.Show("DRAW");
+                MessageBox.Show((v == 0 && _Results.Count() > 8) ? "It's a DRAW!" : v == 1 ? "You are a WINNER!" : "You LOST!");
                 StartNewGame();
                 return true;
             }
             return false;
         }
 
-        private void setButton(int v)
-        {
-            switch(v)
-            {
-                case 0:
-                    _win.btn00.Content = "O";
-                    break;
-                case 1:
-                    _win.btn01.Content = "O";
-                    break;
-                case 2:
-                    _win.btn02.Content = "O";
-                    break;
-                case 3:
-                    _win.btn10.Content = "O";
-                    break;
-                case 4:
-                    _win.btn11.Content = "O";
-                    break;
-                case 5:
-                    _win.btn12.Content = "O";
-                    break;
-                case 6:
-                    _win.btn20.Content = "O";
-                    break;
-                case 7:
-                    _win.btn21.Content = "O";
-                    break;
-                case 8:
-                    _win.btn22.Content = "O";
-                    break;
-            }
-            _Results.Add(new MarkType("O", v));
-        }
+       
 
         private int bestMove()
         {
@@ -124,15 +80,12 @@ namespace TicTacToe.Helpers
             {
                 List<int> xMarkAI = _ResultsAI.Where(x => x.Mark == "X").Select(x => x.Index).ToList(); // player markers
                 List<int> oMarkAI = _ResultsAI.Where(o => o.Mark == "O").Select(o => o.Index).ToList(); // AI markers
-                int posWin = checkPotentialWin(xMarkAI, oMarkAI);
-                if (posWin != -1) return posWin;
-                int posloss = checkPotentialLoss(xMarkAI, oMarkAI);
-                if (posloss != -1) return posloss;
-                List<int> res = blankMarkAI.Except(xMarkAI).Except(oMarkAI).ToList();
+                int wl = checkPotentialWinLoss(xMarkAI, oMarkAI);
+                if (wl != -1) return wl;
+                List<int> res = blankMarkAI.Except(xMarkAI).Except(oMarkAI).ToList(); // Possible Blanks to make
                 if (res.Count() == 0) return nextMove;
-
                 Random ran = new Random();
-                nextMove = res[ran.Next(0, res.Count() - 1)]; // this is so wrong, need to check if 1 X is missing for win
+                nextMove = res[ran.Next(0, res.Count() - 1)]; // this is so wrong, i need i better "random"
                 _ResultsAI.Add(new MarkType(_PlayerTurnAI ? "X" : "O",nextMove));
                 _PlayerTurnAI ^= true;
                 i = winnerCheck(false);
@@ -152,7 +105,6 @@ namespace TicTacToe.Helpers
 
             foreach (List<int> lst in _WinList)
             {
-                
                 if (!lst.Except(xMark).Any())
                 {
                     if (bPlayer) markWinLine(lst);
@@ -167,23 +119,9 @@ namespace TicTacToe.Helpers
             return 0;
         }
 
-        private int checkPotentialLoss(List<int> x, List<int> o)
+        private int checkPotentialWinLoss(List<int> x, List<int> o)
         {
-            foreach (List<int> lst in _WinList)
-            {
-                if (lst.Except(x).Count() == 1)
-                {
-                    var result = lst.Except(x);
-                    foreach (var r in result)
-                        if (!o.Contains(r))
-                            return r;
-                }
-            }
-            return -1;
-        }
-
-        private int checkPotentialWin(List<int> x, List<int> o)
-        {
+            //First check if there is a chance to win the game
             foreach (List<int> lst in _WinList)
             {
                 if (lst.Except(o).Count() == 1)
@@ -191,6 +129,18 @@ namespace TicTacToe.Helpers
                     var result = lst.Except(o);
                     foreach (var r in result)
                         if (!x.Contains(r))
+                            return r;
+                }
+            }
+
+            //Second check if there is a chance to lose the game
+            foreach (List<int> lst in _WinList)
+            {
+                if (lst.Except(x).Count() == 1)
+                {
+                    var result = lst.Except(x);
+                    foreach (var r in result)
+                        if (!o.Contains(r))
                             return r;
                 }
             }
@@ -234,6 +184,42 @@ namespace TicTacToe.Helpers
 
             }
         }
+
+        private void play(int v, bool player)
+        {
+            switch (v)
+            {
+                case 0:
+                    _win.btn00.Content = player ? "X" : "O";
+                    break;
+                case 1:
+                    _win.btn01.Content = player ? "X" : "O";
+                    break;
+                case 2:
+                    _win.btn02.Content = player ? "X" : "O";
+                    break;
+                case 3:
+                    _win.btn10.Content = player ? "X" : "O";
+                    break;
+                case 4:
+                    _win.btn11.Content = player ? "X" : "O";
+                    break;
+                case 5:
+                    _win.btn12.Content = player ? "X" : "O";
+                    break;
+                case 6:
+                    _win.btn20.Content = player ? "X" : "O";
+                    break;
+                case 7:
+                    _win.btn21.Content = player ? "X" : "O";
+                    break;
+                case 8:
+                    _win.btn22.Content = player ? "X" : "O";
+                    break;
+            }
+            _Results.Add(new MarkType(player ? "X" : "O", v));
+        }
+
 
     }
 
