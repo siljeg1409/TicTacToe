@@ -22,13 +22,31 @@ namespace TicTacToe
     {
         #region PrivateMembers
         private List<Helpers.MarkType> _Results;
+        private List<List<int>> _WinList = new List<List<int>>();
         private bool _PlayerTurn;
         private bool _GameEnd;
+
         #endregion
         public MainWindow()
         {
             InitializeComponent();
+            generateWinCombinations();
             startNewGame();
+        }
+
+        private void generateWinCombinations()
+        {
+            #region Winning Combinations
+            _WinList.Add(new List<int> { 0, 1, 2 });
+            _WinList.Add(new List<int> { 3, 4, 5 });
+            _WinList.Add(new List<int> { 6, 7, 8 });
+            _WinList.Add(new List<int> { 0, 3, 6 });
+            _WinList.Add(new List<int> { 1, 4, 7 });
+            _WinList.Add(new List<int> { 2, 5, 8 });
+            _WinList.Add(new List<int> { 2, 4, 6 });
+            _WinList.Add(new List<int> { 0, 4, 8 });
+            #endregion
+
         }
 
         private void startNewGame()
@@ -64,41 +82,64 @@ namespace TicTacToe
 
         private int winnerCheck()
         {
-            #region Winning Combinations
-            var win1 = new[] { 0, 1, 2 };
-            var win2 = new[] { 3, 4, 5 };
-            var win3 = new[] { 6, 7, 8 };
-
-            var win5 = new[] { 0, 3, 6 };
-            var win6 = new[] { 1, 4, 7 };
-            var win7 = new[] { 2, 5, 8 };
-
-            var win8 = new[] { 2, 4, 6 };
-            var win4 = new[] { 0, 4, 8 };
-            #endregion
-
+           
             var xMark = _Results.Where(x => x.Mark == "X").Select(x => x.Index).ToList();
             var oMark = _Results.Where(o => o.Mark == "O").Select(o => o.Index).ToList();
+            foreach( List<int> lst in _WinList)
+            {
+                if (!lst.Except(xMark).Any())
+                {
+                    markWinLine(lst);
+                    return 1;
+                }
+                else if (!lst.Except(oMark).Any())
+                {
+                    markWinLine(lst);
+                    return 2;
+                }
+            }
 
-            if (!win1.Except(xMark).Any() ||
-                !win2.Except(xMark).Any() ||
-                !win3.Except(xMark).Any() ||
-                !win4.Except(xMark).Any() ||
-                !win5.Except(xMark).Any() ||
-                !win6.Except(xMark).Any() ||
-                !win7.Except(xMark).Any() ||
-                !win8.Except(xMark).Any()) return 1;
+            return 0;
+    
+        }
 
-            else if (!win1.Except(oMark).Any() ||
-                !win2.Except(oMark).Any() ||
-                !win3.Except(oMark).Any() ||
-                !win4.Except(oMark).Any() ||
-                !win5.Except(oMark).Any() ||
-                !win6.Except(oMark).Any() ||
-                !win7.Except(oMark).Any() ||
-                !win8.Except(oMark).Any()) return 2;
-            else
-                return 0;
+        private void markWinLine(List<int> lst)
+        {
+            foreach(int i in lst)
+            {
+                switch (i)
+                {
+                    case  0:
+                        btn00.Background = Brushes.Green;
+                        break;
+                    case 1:
+                        btn01.Background = Brushes.Green;
+                        break;
+                    case 2:
+                        btn02.Background = Brushes.Green;
+                        break;
+                    case 3:
+                        btn10.Background = Brushes.Green;
+                        break;
+                    case 4:
+                        btn11.Background = Brushes.Green;
+                        break;
+                    case 5:
+                        btn12.Background = Brushes.Green;
+                        break;
+                    case 6:
+                        btn20.Background = Brushes.Green;
+                        break;
+                    case 7:
+                        btn21.Background = Brushes.Green;
+                        break;
+                    case 8:
+                        btn22.Background = Brushes.Green;
+                        break;
+
+                }
+
+            }
         }
     }
 }
