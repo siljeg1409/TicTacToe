@@ -46,7 +46,6 @@ namespace TicTacToe
             _WinList.Add(new List<int> { 2, 4, 6 });
             _WinList.Add(new List<int> { 0, 4, 8 });
             #endregion
-
         }
 
         private void startNewGame()
@@ -55,7 +54,7 @@ namespace TicTacToe
             _PlayerTurn = true;
             _GameEnd = false;
 
-            mainGrid.Children.Cast<Button>().ToList().ForEach(b => { b.Content = String.Empty; b.Background = Brushes.White; b.Foreground = Brushes.Blue; });
+            mainGrid.Children.Cast<Button>().ToList().ForEach(b => { b.Content = String.Empty; b.Background = Brushes.White; });
         }
 
         private void btn_Click(object sender, RoutedEventArgs e)
@@ -70,7 +69,6 @@ namespace TicTacToe
             _Results.Add(new Helpers.MarkType { Mark = _PlayerTurn ? "X" : "O", Index = pos });
             btn.Content = _PlayerTurn ? "X" : "O";
             _PlayerTurn ^= true; // bitvise flip
-            btn.Foreground = _PlayerTurn ? Brushes.Blue : Brushes.Red;
             int result = winnerCheck();
             if (result != 0)
             {
@@ -110,31 +108,31 @@ namespace TicTacToe
                 switch (i)
                 {
                     case  0:
-                        btn00.Background = Brushes.Green;
+                        btn00.Foreground = Brushes.Green;
                         break;
                     case 1:
-                        btn01.Background = Brushes.Green;
+                        btn01.Foreground = Brushes.Green;
                         break;
                     case 2:
-                        btn02.Background = Brushes.Green;
+                        btn02.Foreground = Brushes.Green;
                         break;
                     case 3:
-                        btn10.Background = Brushes.Green;
+                        btn10.Foreground = Brushes.Green;
                         break;
                     case 4:
-                        btn11.Background = Brushes.Green;
+                        btn11.Foreground = Brushes.Green;
                         break;
                     case 5:
-                        btn12.Background = Brushes.Green;
+                        btn12.Foreground = Brushes.Green;
                         break;
                     case 6:
-                        btn20.Background = Brushes.Green;
+                        btn20.Foreground = Brushes.Green;
                         break;
                     case 7:
-                        btn21.Background = Brushes.Green;
+                        btn21.Foreground = Brushes.Green;
                         break;
                     case 8:
-                        btn22.Background = Brushes.Green;
+                        btn22.Foreground = Brushes.Green;
                         break;
 
                 }
