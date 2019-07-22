@@ -7,6 +7,9 @@ using System.Windows.Media;
 
 namespace TicTacToe.Helpers
 {
+    /// <summary>
+    /// Main logic class
+    /// </summary>
     public class Logic
     {
         #region Private members
@@ -17,12 +20,20 @@ namespace TicTacToe.Helpers
         private bool _PlayerTurnAI;
         #endregion
 
+        /// <summary>
+        /// Logic class constructor
+        /// </summary>
+        /// <param name="win">MainWindow for easy in-class manipulation</param>
         public Logic(MainWindow win)
         {
             _win = win;
             generateWinCombinations();
             StartNewGame();
         }
+
+        /// <summary>
+        /// Generates matrix of winning combinations for ai move and winner check
+        /// </summary>
         private void generateWinCombinations()
         {
             #region Winning Combinations
@@ -37,25 +48,42 @@ namespace TicTacToe.Helpers
             #endregion
         }
 
+        /// <summary>
+        /// Method for starting the new game, clears marked fields from main window and resets main list
+        /// </summary>
         public void StartNewGame()
         {
             _Results = new List<MarkType>();
             _win.mainGrid.Children.Cast<Button>().ToList().ForEach(b => { b.Content = String.Empty; b.Background = Brushes.White; b.Foreground = Brushes.Black; });
         }
 
+        /// <summary>
+        /// Method for button handling, marking fields (X O)
+        /// Calling ai move
+        /// Checking for win/loss
+        /// </summary>
+        /// <param name="btn">Clicked button</param>
+        /// <param name="pos">Marker (X O) position</param>
         public void ButtonHandler(Button btn, int pos)
         {
             string sMark = _Results.Where(o => o.Index == pos).Select(x => x.Mark).FirstOrDefault();
             if (sMark != null) return;
-            play(pos, true);
-            if (messageHandler(winnerCheck())) return;
+            Play(pos, true);
+            if (MessageHandler(winnerCheck())) return;
             _ResultsAI = new List<MarkType>(_Results);
             _PlayerTurnAI = false;
-            play(bestMove(),false);
-            messageHandler(winnerCheck());
+            Play(BestMove(),false);
+            MessageHandler(winnerCheck());
         }
 
-        private bool messageHandler(int v)
+        /// <summary>
+        /// Message will be shown if there is a win/loss/draw
+        /// </summary>
+        /// <param name="v">
+        /// 0 & all fields used => draw, 1 => player is a winner, 2 => player is a looser
+        /// </param>
+        /// <returns>Returs true if game is over</returns>
+        private bool MessageHandler(int v)
         {
             if((v == 0 && _Results.Count() > 8) || v!= 0)
             {
@@ -67,8 +95,11 @@ namespace TicTacToe.Helpers
         }
 
        
-
-        private int bestMove()
+        /// <summary>
+        /// Main function for checking "best" possible move for AI to make
+        /// </summary>
+        /// <returns>Returns AI move</returns>
+        private int BestMove()
         {
             int nextMove = 0;
             List<int> blankMarkAI = new List<int> { 0, 1, 2, 3, 4, 5, 6, 7, 8 }; // Blank
@@ -81,17 +112,22 @@ namespace TicTacToe.Helpers
                 if (wl != -1) return wl;
                 List<int> res = blankMarkAI.Except(xMarkAI).Except(oMarkAI).ToList(); // Possible Blanks to make
                 if (res.Count() == 0) return nextMove;
+                if (res.Contains(4)) return 4; // Mark center if free, else go random
                 Random ran = new Random();
-                nextMove = res[ran.Next(0, res.Count() - 1)]; // this is so wrong, i need i better "random"
+                nextMove = res[ran.Next(0, res.Count() - 1)]; // this is so wrong, i need i better "random", it will do for now
                 _ResultsAI.Add(new MarkType(_PlayerTurnAI ? "X" : "O",nextMove));
                 _PlayerTurnAI ^= true;
                 i = winnerCheck(false);
                 if (i == 1) return nextMove;
             }
-
             return nextMove;
         }
 
+        /// <summary>
+        /// Function for checking if there is a winner
+        /// </summary>
+        /// <param name="bPlayer">Player move (true) or AI move (false)</param>
+        /// <returns>Returns 0 if draw, 1 if player wins, 2 if AI wins</returns>
         private int winnerCheck(bool bPlayer = true)
         {
             var tmpRes = _ResultsAI;
@@ -104,18 +140,24 @@ namespace TicTacToe.Helpers
             {
                 if (!lst.Except(xMark).Any())
                 {
-                    if (bPlayer) markWinLine(lst);
+                    if (bPlayer) MarkWinLine(lst);
                     return 1;
                 }
                 else if (!lst.Except(oMark).Any())
                 {
-                    if (bPlayer) markWinLine(lst);
+                    if (bPlayer) MarkWinLine(lst);
                     return 2;
                 }
             }
             return 0;
         }
 
+        /// <summary>
+        /// Function for checking if there is a potential win or loss, so that AI will mark one field for win, or block player win with a mark
+        /// </summary>
+        /// <param name="x">List of player markers</param>
+        /// <param name="o">List of AI markers</param>
+        /// <returns>Returns mark for win or block, or -1 for AI to make "random" move</returns>
         private int checkPotentialWinLoss(List<int> x, List<int> o)
         {
             //First check if there is a chance to win the game
@@ -144,7 +186,11 @@ namespace TicTacToe.Helpers
             return -1;
         }
 
-        private void markWinLine(List<int> lst)
+        /// <summary>
+        /// Method for marking winning line
+        /// </summary>
+        /// <param name="lst">List of winning combination</param>
+        private void MarkWinLine(List<int> lst)
         {
             foreach (int i in lst)
             {
@@ -154,15 +200,18 @@ namespace TicTacToe.Helpers
             }
         }
 
-        private void play(int v, bool player)
+        /// <summary>
+        /// Method for marking the X, O positions
+        /// </summary>
+        /// <param name="v">Position to be marked</param>
+        /// <param name="player">if True than mark is X, if false mark is O</param>
+        private void Play(int v, bool player)
         {
             var btn = (Button)_win.FindName("btn" + v);
             btn.Content = player ? "X" : "O";
             _Results.Add(new MarkType(player ? "X" : "O", v));
         }
 
-
     }
-
    
 }
